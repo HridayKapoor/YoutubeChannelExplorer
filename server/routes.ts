@@ -201,6 +201,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/channels/:channelId/playlists", async (req: Request, res: Response) => {
     try {
       const { channelId } = req.params;
+      
+      // Check if we need to refresh playlists from YouTube
+      const refreshParam = req.query.refresh;
+      if (refreshParam === 'true') {
+        // This will fetch and store fresh data from YouTube
+        await fetchAndStoreChannelPlaylists(channelId);
+      }
+      
       const playlists = await storage.getPlaylists(channelId);
       return res.json(playlists);
     } catch (err) {

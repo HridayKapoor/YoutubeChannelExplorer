@@ -7,9 +7,11 @@ import VideoGrid from "@/components/video/VideoGrid";
 import PlaylistGrid from "@/components/playlist/PlaylistGrid";
 import SearchInput from "@/components/ui/SearchInput";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Layers, Video } from "lucide-react";
+import { ArrowLeft, Layers, Video, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ChannelDetail() {
   const [, params] = useRoute("/channel/:id");
@@ -36,10 +38,10 @@ export default function ChannelDetail() {
   });
   
   // Fetch playlists
-  const { data: playlists, isLoading: isLoadingPlaylists } = useQuery({
+  const { data: playlists, isLoading: isLoadingPlaylists, refetch: refetchPlaylists } = useQuery({
     queryKey: ["/api/channels", channel?.channelId, "playlists"],
     queryFn: () => fetchChannelPlaylists(channel?.channelId || ""),
-    enabled: !!channel?.channelId && tab === "playlists"
+    enabled: !!channel?.channelId
   });
   
   // Sort videos based on sort order
@@ -66,12 +68,13 @@ export default function ChannelDetail() {
             <p className="text-muted-foreground mb-6">
               The channel you're looking for doesn't exist or has been removed.
             </p>
-            <Link href="/">
-              <a className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Channels
-              </a>
-            </Link>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Channels
+            </button>
           </div>
         </main>
       </div>
@@ -86,11 +89,12 @@ export default function ChannelDetail() {
         {/* Channel Header & Nav */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div className="flex items-center">
-            <Link href="/">
-              <a className="mr-4 p-2 rounded-full hover:bg-muted transition-colors duration-200">
-                <ArrowLeft className="h-5 w-5" />
-              </a>
-            </Link>
+            <button 
+              onClick={() => window.location.href = '/'}
+              className="mr-4 p-2 rounded-full hover:bg-muted transition-colors duration-200"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
             
             <div className="flex items-center">
               {isLoadingChannel ? (

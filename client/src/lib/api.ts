@@ -23,8 +23,9 @@ export async function fetchChannelVideos(channelId: string) {
 }
 
 // Playlist API functions
-export async function fetchChannelPlaylists(channelId: string) {
-  const response = await apiRequest("GET", `/api/channels/${channelId}/playlists`);
+export async function fetchChannelPlaylists(channelId: string, refresh: boolean = false) {
+  const url = `/api/channels/${channelId}/playlists${refresh ? '?refresh=true' : ''}`;
+  const response = await apiRequest("GET", url);
   return await response.json();
 }
 
