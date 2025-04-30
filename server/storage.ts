@@ -21,6 +21,7 @@ export interface IStorage {
   getChannel(id: number): Promise<Channel | undefined>;
   getChannelByYoutubeId(channelId: string): Promise<Channel | undefined>;
   createChannel(channel: InsertChannel): Promise<Channel>;
+  deleteChannel(id: number): Promise<boolean>;
   
   // Video operations
   getVideos(channelId: string): Promise<Video[]>;
@@ -58,6 +59,32 @@ export class DatabaseStorage implements IStorage {
   async createChannel(channelData: InsertChannel): Promise<Channel> {
     const [channel] = await db.insert(channels).values(channelData).returning();
     return channel;
+  }
+
+  async deleteChannel(id: number): Promise<boolean> {
+    try {
+      // First find playlists to delete their items
+      const channelPlaylists = await db.select().from(playlists).where(eq(playlists.channelId, id.toString()));
+      
+      // Delete playlist items for each playlist
+      for (const playlist of channelPlaylists) {
+        await db.delete(playlistItems).where(eq(playlistItems.playlistId, playlist.playlistId));
+      }
+      
+      // Delete playlists
+      await db.delete(playlists).where(eq(playlists.channelId, id.toString()));
+      
+      // Delete videos
+      await db.delete(videos).where(eq(videos.channelId, id.toString()));
+      
+      // Finally delete the channel
+      const result = await db.delete(channels).where(eq(channels.id, id));
+      
+      return result.count > 0;
+    } catch (error) {
+      console.error("Error deleting channel:", error);
+      return false;
+    }
   }
 
   // Video operations
