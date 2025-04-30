@@ -26,8 +26,8 @@ interface AddChannelDialogProps {
 
 const formSchema = z.object({
   url: z.string().min(1, "Channel URL is required").refine(
-    (val) => val.includes("youtube.com") || val.startsWith("UC"),
-    "Please enter a valid YouTube channel URL or ID"
+    (val) => val.includes("youtube.com") || val.includes("youtu.be") || val.startsWith("UC") || val.startsWith("@"),
+    "Please enter a valid YouTube channel URL, handle (@username), or channel ID"
   ),
 });
 
@@ -76,7 +76,7 @@ export default function AddChannelDialog({ open, onOpenChange }: AddChannelDialo
           </div>
           <DialogTitle>Add YouTube Channel</DialogTitle>
           <DialogDescription>
-            Enter the URL of a YouTube channel to add it to your collection.
+            Enter a YouTube channel URL, handle (@username), or channel ID to add it to your collection.
           </DialogDescription>
         </DialogHeader>
         
@@ -89,7 +89,7 @@ export default function AddChannelDialog({ open, onOpenChange }: AddChannelDialo
                 <FormItem>
                   <FormControl>
                     <Input
-                      placeholder="https://www.youtube.com/c/channelname"
+                      placeholder="https://youtube.com/... or @username"
                       {...field}
                       disabled={addChannelMutation.isPending}
                     />

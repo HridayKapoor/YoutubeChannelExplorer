@@ -40,23 +40,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (match && match[1]) channelId = match[1];
         } else if (url.includes("/c/") || url.includes("/@")) {
           // For custom URLs or handle, we need to make an initial request
-          const match = url.match(/\/(c|@)\/([^\/\?]+)/);
-          const customUsername = match && match[2] ? match[2] : null;
+          // Handle both regular URLs and mobile URLs
+          const match = url.match(/\/(c|@)\/([^\/\?]+)/) || url.match(/@([^\/\?]+)/);
+          const customUsername = (match && match[2]) ? match[2] : (match && match[1] ? match[1] : null);
           
           if (customUsername) {
-            const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
-              params: {
-                part: "snippet",
-                q: customUsername,
-                type: "channel",
-                key: YOUTUBE_API_KEY
+            console.log(`Searching for channel with username: ${customUsername}`);
+            try {
+              const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
+                params: {
+                  part: "snippet",
+                  q: customUsername,
+                  type: "channel",
+                  key: YOUTUBE_API_KEY
+                }
+              });
+              
+              if (response.data.items && response.data.items.length > 0) {
+                channelId = response.data.items[0].id.channelId;
+                console.log(`Found channel ID: ${channelId}`);
+              } else {
+                console.log(`No channel found for username: ${customUsername}`);
+                return res.status(404).json({ message: "Channel not found" });
               }
-            });
-            
-            if (response.data.items && response.data.items.length > 0) {
-              channelId = response.data.items[0].id.channelId;
-            } else {
-              return res.status(404).json({ message: "Channel not found" });
+            } catch (error) {
+              console.error("Error searching for channel:", error);
+              return res.status(500).json({ message: "Error searching for channel" });
             }
           }
         }
@@ -227,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let nextPageToken: string | undefined = undefined;
       
       do {
-        const response = await axios.get(`${YOUTUBE_API_BASE}/playlists`, {
+        const playlistsResponse = await axios.get(`${YOUTUBE_API_BASE}/playlists`, {
           params: {
             part: "snippet,contentDetails",
             channelId: channelId,
@@ -237,8 +246,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
         
-        if (response.data.items && response.data.items.length > 0) {
-          for (const item of response.data.items) {
+        if (playlistsResponse.data.items && playlistsResponse.data.items.length > 0) {
+          for (const item of playlistsResponse.data.items) {
             const playlistData = {
               playlistId: item.id,
               channelId: channelId,
@@ -260,7 +269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        nextPageToken = response.data.nextPageToken;
+        nextPageToken = playlistsResponse.data.nextPageToken;
       } while (nextPageToken);
       
     } catch (err) {
@@ -275,7 +284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let position = 0;
       
       do {
-        const response = await axios.get(`${YOUTUBE_API_BASE}/playlistItems`, {
+        const playlistItemsResponse = await axios.get(`${YOUTUBE_API_BASE}/playlistItems`, {
           params: {
             part: "snippet,contentDetails",
             playlistId: playlistId,
@@ -285,9 +294,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         });
         
-        if (response.data.items && response.data.items.length > 0) {
+        if (playlistItemsResponse.data.items && playlistItemsResponse.data.items.length > 0) {
           // Extract video IDs for a batch request
-          const videoIds = response.data.items.map((item: any) => 
+          const videoIds = playlistItemsResponse.data.items.map((item: any) => 
             item.snippet.resourceId.videoId
           ).join(",");
           
@@ -308,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
           
           // Process each playlistItem
-          for (const item of response.data.items) {
+          for (const item of playlistItemsResponse.data.items) {
             const videoId = item.snippet.resourceId.videoId;
             const videoDetails = videoDetailsMap.get(videoId);
             
@@ -347,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        nextPageToken = response.data.nextPageToken;
+        nextPageToken = playlistItemsResponse.data.nextPageToken;
       } while (nextPageToken);
       
     } catch (err) {
