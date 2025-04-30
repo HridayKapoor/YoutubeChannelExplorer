@@ -26,7 +26,7 @@ export default function ChannelDetail() {
     queryFn: fetchChannels
   });
   
-  const channel = channels?.find(c => c.id === channelId);
+  const channel = channels?.find((c: { id: number }) => c.id === channelId);
   
   // Fetch videos
   const { data: videos, isLoading: isLoadingVideos } = useQuery({
@@ -161,50 +161,52 @@ export default function ChannelDetail() {
         </div>
         
         {/* Content */}
-        <TabsContent value="videos" className="mt-0">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="h-40 w-full rounded-lg" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
+        <Tabs value={tab} className="w-full">
+          <TabsContent value="videos" className="mt-0">
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-40 w-full rounded-lg" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <VideoGrid 
-              videos={sortedVideos} 
-              searchQuery={searchQuery}
-              currentPage={currentPage}
-              onPageChange={setCurrentPage}
-            />
-          )}
-        </TabsContent>
-        
-        <TabsContent value="playlists" className="mt-0">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="space-y-3">
-                  <Skeleton className="h-40 w-full rounded-lg" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-5 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
+                ))}
+              </div>
+            ) : (
+              <VideoGrid 
+                videos={sortedVideos} 
+                searchQuery={searchQuery}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            )}
+          </TabsContent>
+          
+          <TabsContent value="playlists" className="mt-0">
+            {isLoading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="space-y-3">
+                    <Skeleton className="h-40 w-full rounded-lg" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <PlaylistGrid 
-              playlists={playlists || []} 
-              searchQuery={searchQuery} 
-            />
-          )}
-        </TabsContent>
+                ))}
+              </div>
+            ) : (
+              <PlaylistGrid 
+                playlists={playlists || []} 
+                searchQuery={searchQuery} 
+              />
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

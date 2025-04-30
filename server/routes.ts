@@ -236,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let nextPageToken: string | undefined = undefined;
       
       do {
-        const playlistsResponse = await axios.get(`${YOUTUBE_API_BASE}/playlists`, {
+        const playlistsResponse: any = await axios.get(`${YOUTUBE_API_BASE}/playlists`, {
           params: {
             part: "snippet,contentDetails",
             channelId: channelId,
@@ -284,7 +284,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let position = 0;
       
       do {
-        const playlistItemsResponse = await axios.get(`${YOUTUBE_API_BASE}/playlistItems`, {
+        const playlistItemsResponse: any = await axios.get(`${YOUTUBE_API_BASE}/playlistItems`, {
           params: {
             part: "snippet,contentDetails",
             playlistId: playlistId,
