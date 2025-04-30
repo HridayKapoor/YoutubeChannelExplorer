@@ -5,11 +5,14 @@ import { PlayIcon } from "lucide-react";
 
 interface PlaylistVideoItemProps {
   video: Video & { position?: number };
+  onClick?: (video: Video) => void;
 }
 
-export default function PlaylistVideoItem({ video }: PlaylistVideoItemProps) {
+export default function PlaylistVideoItem({ video, onClick }: PlaylistVideoItemProps) {
   const handleClick = () => {
-    window.open(`https://www.youtube.com/watch?v=${video.videoId}`, "_blank");
+    if (onClick) {
+      onClick(video);
+    }
   };
   
   return (

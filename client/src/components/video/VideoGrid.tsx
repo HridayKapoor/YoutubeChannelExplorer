@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import VideoCard from "./VideoCard";
+import VideoPlayer from "./VideoPlayer";
 import { Video } from "@shared/schema";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
@@ -18,6 +19,8 @@ export default function VideoGrid({
   currentPage = 1,
   onPageChange = () => {}
 }: VideoGridProps) {
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  
   const filteredVideos = useMemo(() => {
     if (!searchQuery.trim()) return videos;
     
@@ -33,6 +36,14 @@ export default function VideoGrid({
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedVideos = filteredVideos.slice(startIndex, startIndex + pageSize);
   
+  const handleVideoClick = (video: Video) => {
+    setSelectedVideo(video);
+  };
+  
+  const handleClosePlayer = () => {
+    setSelectedVideo(null);
+  };
+  
   if (filteredVideos.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -47,116 +58,127 @@ export default function VideoGrid({
   }
   
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {paginatedVideos.map(video => (
-          <VideoCard key={video.id} video={video} />
-        ))}
+    <>
+      <div className="space-y-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {paginatedVideos.map(video => (
+            <VideoCard 
+              key={video.id} 
+              video={video} 
+              onClick={() => handleVideoClick(video)}
+            />
+          ))}
+        </div>
+        
+        {totalPages > 1 && (
+          <Pagination className="mt-8">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) onPageChange(currentPage - 1);
+                  }}
+                  className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                let pageNum;
+                
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                  if (i === 4) return (
+                    <PaginationItem key={i}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                  if (i === 0) return (
+                    <PaginationItem key={i}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                } else {
+                  if (i === 0) return (
+                    <PaginationItem key={i}>
+                      <PaginationLink 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onPageChange(1);
+                        }}
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                  if (i === 1) return (
+                    <PaginationItem key={i}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                  if (i === 3) return (
+                    <PaginationItem key={i}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                  if (i === 4) return (
+                    <PaginationItem key={i}>
+                      <PaginationLink 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          onPageChange(totalPages);
+                        }}
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                  
+                  pageNum = currentPage + i - 2;
+                }
+                
+                return (
+                  <PaginationItem key={i}>
+                    <PaginationLink 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onPageChange(pageNum);
+                      }}
+                      isActive={currentPage === pageNum}
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  </PaginationItem>
+                );
+              })}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  href="#" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) onPageChange(currentPage + 1);
+                  }}
+                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
       </div>
       
-      {totalPages > 1 && (
-        <Pagination className="mt-8">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) onPageChange(currentPage - 1);
-                }}
-                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-            
-            {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-              let pageNum;
-              
-              if (totalPages <= 5) {
-                pageNum = i + 1;
-              } else if (currentPage <= 3) {
-                pageNum = i + 1;
-                if (i === 4) return (
-                  <PaginationItem key={i}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-              } else if (currentPage >= totalPages - 2) {
-                pageNum = totalPages - 4 + i;
-                if (i === 0) return (
-                  <PaginationItem key={i}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-              } else {
-                if (i === 0) return (
-                  <PaginationItem key={i}>
-                    <PaginationLink 
-                      href="#" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onPageChange(1);
-                      }}
-                    >
-                      1
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-                if (i === 1) return (
-                  <PaginationItem key={i}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-                if (i === 3) return (
-                  <PaginationItem key={i}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-                if (i === 4) return (
-                  <PaginationItem key={i}>
-                    <PaginationLink 
-                      href="#" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onPageChange(totalPages);
-                      }}
-                    >
-                      {totalPages}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-                
-                pageNum = currentPage + i - 2;
-              }
-              
-              return (
-                <PaginationItem key={i}>
-                  <PaginationLink 
-                    href="#" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onPageChange(pageNum);
-                    }}
-                    isActive={currentPage === pageNum}
-                  >
-                    {pageNum}
-                  </PaginationLink>
-                </PaginationItem>
-              );
-            })}
-            
-            <PaginationItem>
-              <PaginationNext 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) onPageChange(currentPage + 1);
-                }}
-                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer video={selectedVideo} onClose={handleClosePlayer} />
       )}
-    </div>
+    </>
   );
 }

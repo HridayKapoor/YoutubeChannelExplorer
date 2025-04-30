@@ -4,16 +4,19 @@ import { useRoute, Link } from "wouter";
 import { fetchPlaylist, fetchPlaylistVideos } from "@/lib/api";
 import Header from "@/components/layout/Header";
 import PlaylistVideoItem from "@/components/playlist/PlaylistVideoItem";
+import VideoPlayer from "@/components/video/VideoPlayer";
 import SearchInput from "@/components/ui/SearchInput";
 import { ArrowLeft, PlayIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Video } from "@shared/schema";
 
 export default function PlaylistDetail() {
   const [, params] = useRoute("/playlist/:id");
   const playlistId = params?.id || "";
   
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   
   // Fetch playlist data
   const { data: playlist, isLoading: isLoadingPlaylist } = useQuery({
@@ -39,10 +42,19 @@ export default function PlaylistDetail() {
       )
     : videos;
   
+  const handleVideoClick = (video: Video) => {
+    setSelectedVideo(video);
+  };
+  
+  const handleClosePlayer = () => {
+    setSelectedVideo(null);
+  };
+  
   // Play all videos in a new tab
   const handlePlayAll = () => {
     if (videos && videos.length > 0) {
-      window.open(`https://www.youtube.com/watch?v=${videos[0].videoId}&list=${playlistId}`, "_blank");
+      // Play the first video in our player
+      setSelectedVideo(videos[0]);
     }
   };
   
@@ -156,8 +168,12 @@ export default function PlaylistDetail() {
               </div>
             ))
           ) : filteredVideos && filteredVideos.length > 0 ? (
-            filteredVideos.map((video) => (
-              <PlaylistVideoItem key={video.id} video={video} />
+            filteredVideos.map((video: Video) => (
+              <PlaylistVideoItem 
+                key={video.id} 
+                video={video} 
+                onClick={handleVideoClick}
+              />
             ))
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -175,6 +191,11 @@ export default function PlaylistDetail() {
           )}
         </div>
       </main>
+      
+      {/* Video Player Modal */}
+      {selectedVideo && (
+        <VideoPlayer video={selectedVideo} onClose={handleClosePlayer} />
+      )}
     </div>
   );
 }
