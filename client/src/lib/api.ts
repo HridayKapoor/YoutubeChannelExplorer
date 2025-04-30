@@ -11,6 +11,11 @@ export async function fetchChannels() {
   return await response.json();
 }
 
+export async function deleteChannel(id: number) {
+  const response = await apiRequest("DELETE", `/api/channels/${id}`);
+  return await response.json();
+}
+
 // Video API functions
 export async function fetchChannelVideos(channelId: string) {
   const response = await apiRequest("GET", `/api/channels/${channelId}/videos`);

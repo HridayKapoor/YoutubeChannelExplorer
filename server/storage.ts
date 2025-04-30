@@ -78,9 +78,11 @@ export class DatabaseStorage implements IStorage {
       await db.delete(videos).where(eq(videos.channelId, id.toString()));
       
       // Finally delete the channel
-      const result = await db.delete(channels).where(eq(channels.id, id));
+      await db.delete(channels).where(eq(channels.id, id));
       
-      return result.count > 0;
+      // Check if the channel was deleted
+      const channel = await this.getChannel(id);
+      return channel === undefined;
     } catch (error) {
       console.error("Error deleting channel:", error);
       return false;

@@ -148,6 +148,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Delete a channel
+  app.delete("/api/channels/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid channel ID" });
+      }
+      
+      const success = await storage.deleteChannel(id);
+      if (success) {
+        return res.json({ success: true });
+      } else {
+        return res.status(404).json({ message: "Channel not found or could not be deleted" });
+      }
+    } catch (err) {
+      console.error("Error deleting channel:", err);
+      return res.status(500).json({ message: "Error deleting channel" });
+    }
+  });
+  
   // Get channel by ID
   app.get("/api/channels/:id", async (req: Request, res: Response) => {
     try {
