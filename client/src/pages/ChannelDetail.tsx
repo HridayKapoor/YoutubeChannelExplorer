@@ -21,6 +21,8 @@ export default function ChannelDetail() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState("recent");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshingPlaylists, setIsRefreshingPlaylists] = useState(false);
+  const { toast } = useToast();
   
   // Fetch channel data
   const { data: channels, isLoading: isLoadingChannel } = useQuery({
@@ -55,6 +57,35 @@ export default function ChannelDetail() {
     }
     return 0;
   }) : [];
+  
+  // Function to refresh playlists from YouTube
+  const refreshPlaylists = async () => {
+    if (!channel?.channelId || isRefreshingPlaylists) return;
+    
+    try {
+      setIsRefreshingPlaylists(true);
+      toast({
+        title: "Refreshing playlists...",
+        description: "Fetching the latest playlists from YouTube."
+      });
+      
+      await fetchChannelPlaylists(channel.channelId, true);
+      await refetchPlaylists();
+      
+      toast({
+        title: "Playlists refreshed",
+        description: "All playlists have been updated from YouTube."
+      });
+    } catch (error) {
+      toast({
+        title: "Error refreshing playlists",
+        description: "There was a problem fetching playlists. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshingPlaylists(false);
+    }
+  };
   
   const isLoading = isLoadingChannel || (tab === "videos" && isLoadingVideos) || (tab === "playlists" && isLoadingPlaylists);
   
@@ -160,6 +191,21 @@ export default function ChannelDetail() {
                   <SelectItem value="popular">Most viewed</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          )}
+          
+          {tab === "playlists" && (
+            <div className="flex-shrink-0">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={refreshPlaylists}
+                disabled={isRefreshingPlaylists || isLoadingPlaylists}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshingPlaylists ? 'animate-spin' : ''}`} />
+                {isRefreshingPlaylists ? 'Refreshing...' : 'Refresh Playlists'}
+              </Button>
             </div>
           )}
         </div>
