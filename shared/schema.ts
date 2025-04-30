@@ -1,4 +1,5 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -15,6 +16,11 @@ export const channels = pgTable("channels", {
   viewCount: text("view_count"),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const channelsRelations = relations(channels, ({ many }) => ({
+  videos: many(() => videos),
+  playlists: many(() => playlists),
+}));
 
 export const insertChannelSchema = createInsertSchema(channels).omit({
   id: true,
@@ -36,6 +42,14 @@ export const videos = pgTable("videos", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const videosRelations = relations(videos, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [videos.channelId],
+    references: [channels.channelId],
+  }),
+  playlistItems: many(() => playlistItems),
+}));
+
 export const insertVideoSchema = createInsertSchema(videos).omit({
   id: true,
   createdAt: true,
@@ -53,6 +67,14 @@ export const playlists = pgTable("playlists", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const playlistsRelations = relations(playlists, ({ one, many }) => ({
+  channel: one(channels, {
+    fields: [playlists.channelId],
+    references: [channels.channelId],
+  }),
+  playlistItems: many(() => playlistItems),
+}));
+
 export const insertPlaylistSchema = createInsertSchema(playlists).omit({
   id: true,
   createdAt: true,
@@ -66,6 +88,17 @@ export const playlistItems = pgTable("playlist_items", {
   position: integer("position").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const playlistItemsRelations = relations(playlistItems, ({ one }) => ({
+  playlist: one(playlists, {
+    fields: [playlistItems.playlistId],
+    references: [playlists.playlistId],
+  }),
+  video: one(videos, {
+    fields: [playlistItems.videoId],
+    references: [videos.videoId],
+  }),
+}));
 
 export const insertPlaylistItemSchema = createInsertSchema(playlistItems).omit({
   id: true,
