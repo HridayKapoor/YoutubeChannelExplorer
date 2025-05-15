@@ -7,7 +7,6 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import ChannelDetail from "@/pages/ChannelDetail";
 import PlaylistDetail from "@/pages/PlaylistDetail";
-import SearchPage from "@/pages/Search";
 
 function Router() {
   return (
@@ -15,7 +14,6 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/channel/:id" component={ChannelDetail} />
       <Route path="/playlist/:id" component={PlaylistDetail} />
-      <Route path="/search" component={SearchPage} />
       <Route component={NotFound} />
     </Switch>
   );

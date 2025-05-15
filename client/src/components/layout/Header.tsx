@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { PlusIcon, YoutubeIcon, Search } from 'lucide-react';
+import { PlusIcon, YoutubeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AddChannelDialog from '@/components/channel/AddChannelDialog';
 
@@ -17,17 +17,6 @@ export default function Header() {
         </Link>
         
         <div className="flex items-center space-x-4">
-          <Link href="/search">
-            <Button variant="outline" size="sm" className="hidden sm:flex">
-              <Search className="h-4 w-4 mr-2" />
-              Search YouTube
-            </Button>
-            
-            <Button variant="outline" size="icon" className="sm:hidden">
-              <Search className="h-4 w-4" />
-            </Button>
-          </Link>
-          
           <Button 
             variant="outline" 
             size="sm" 

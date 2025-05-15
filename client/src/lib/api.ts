@@ -39,12 +39,6 @@ export async function fetchPlaylistVideos(playlistId: string) {
   return await response.json();
 }
 
-// YouTube Search API functions
-export async function searchYoutube(query: string, type: "video" | "playlist" | "all" = "all") {
-  const response = await apiRequest("GET", `/api/youtube/search?query=${encodeURIComponent(query)}&type=${type}`);
-  return await response.json();
-}
-
 // Utility function to format subscriber counts
 export function formatSubscriberCount(count: string | undefined): string {
   if (!count) return "0 subscribers";
