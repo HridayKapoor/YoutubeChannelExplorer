@@ -10,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import VideoPlayer from "@/components/video/VideoPlayer";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import PlaylistViewer from "@/components/playlist/PlaylistViewer";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface VideoResult {
   id: string;
@@ -44,7 +45,9 @@ export default function SearchPage() {
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "video" | "playlist">("all");
   const [selectedVideo, setSelectedVideo] = useState<VideoResult | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<PlaylistResult | null>(null);
   const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
+  const [isPlaylistDialogOpen, setIsPlaylistDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: searchResults, isLoading, error } = useQuery({
@@ -92,15 +95,20 @@ export default function SearchPage() {
   };
 
   const handlePlaylistClick = (playlist: PlaylistResult) => {
-    // For playlists, we'll still open in a new tab for now
-    // A future enhancement could be to create a custom playlist viewer
-    window.open(`https://www.youtube.com/playlist?list=${playlist.id}`, "_blank");
+    setSelectedPlaylist(playlist);
+    setIsPlaylistDialogOpen(true);
   };
   
   const closeVideoDialog = () => {
     setIsVideoDialogOpen(false);
     // Add a slight delay before resetting the selected video to prevent UI flicker
     setTimeout(() => setSelectedVideo(null), 300);
+  };
+  
+  const closePlaylistDialog = () => {
+    setIsPlaylistDialogOpen(false);
+    // Add a slight delay before resetting the selected playlist to prevent UI flicker
+    setTimeout(() => setSelectedPlaylist(null), 300);
   };
 
   return (
@@ -110,11 +118,26 @@ export default function SearchPage() {
       {/* Video Player Dialog */}
       <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
         <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
+          <DialogTitle className="sr-only">Video Player</DialogTitle>
           {selectedVideo && (
             <VideoPlayer 
               videoId={selectedVideo.id} 
               title={selectedVideo.title} 
               onClose={closeVideoDialog} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Playlist Viewer Dialog */}
+      <Dialog open={isPlaylistDialogOpen} onOpenChange={setIsPlaylistDialogOpen}>
+        <DialogContent className="sm:max-w-[1000px] md:max-w-[90%] p-0 overflow-hidden max-h-[90vh]">
+          <DialogTitle className="sr-only">Playlist Viewer</DialogTitle>
+          {selectedPlaylist && (
+            <PlaylistViewer 
+              playlistId={selectedPlaylist.id} 
+              title={selectedPlaylist.title} 
+              onClose={closePlaylistDialog} 
             />
           )}
         </DialogContent>
