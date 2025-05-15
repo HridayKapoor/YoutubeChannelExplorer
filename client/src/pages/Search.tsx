@@ -5,10 +5,12 @@ import Header from "@/components/layout/Header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search as SearchIcon, Loader2 } from "lucide-react";
+import { Search as SearchIcon, Loader2, ShieldAlert } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import VideoPlayer from "@/components/video/VideoPlayer";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface VideoResult {
   id: string;
@@ -41,6 +43,8 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"all" | "video" | "playlist">("all");
+  const [selectedVideo, setSelectedVideo] = useState<VideoResult | null>(null);
+  const [isVideoDialogOpen, setIsVideoDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: searchResults, isLoading, error } = useQuery({
@@ -83,16 +87,38 @@ export default function SearchPage() {
   const playlists = filteredResults.filter((item: any) => item.type === "playlist") as PlaylistResult[];
 
   const handleVideoClick = (video: VideoResult) => {
-    window.open(`https://www.youtube.com/watch?v=${video.id}`, "_blank");
+    setSelectedVideo(video);
+    setIsVideoDialogOpen(true);
   };
 
   const handlePlaylistClick = (playlist: PlaylistResult) => {
+    // For playlists, we'll still open in a new tab for now
+    // A future enhancement could be to create a custom playlist viewer
     window.open(`https://www.youtube.com/playlist?list=${playlist.id}`, "_blank");
+  };
+  
+  const closeVideoDialog = () => {
+    setIsVideoDialogOpen(false);
+    // Add a slight delay before resetting the selected video to prevent UI flicker
+    setTimeout(() => setSelectedVideo(null), 300);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      
+      {/* Video Player Dialog */}
+      <Dialog open={isVideoDialogOpen} onOpenChange={setIsVideoDialogOpen}>
+        <DialogContent className="sm:max-w-[800px] p-0 overflow-hidden">
+          {selectedVideo && (
+            <VideoPlayer 
+              videoId={selectedVideo.id} 
+              title={selectedVideo.title} 
+              onClose={closeVideoDialog} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <main className="container px-4 py-6 md:py-8">
         <h1 className="text-3xl font-bold mb-6">YouTube Search</h1>
@@ -325,6 +351,11 @@ interface VideoSearchItemProps {
 }
 
 function VideoSearchItem({ video, onClick }: VideoSearchItemProps) {
+  // Check if video title or description contains educational keywords
+  const isEducational = 
+    /education|tutorial|course|learn|study|lecture|lesson|school|university|college|academic|teach|training|howto|guide/i
+      .test(video.title + ' ' + video.description);
+  
   return (
     <div
       className="flex flex-col sm:flex-row gap-4 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
@@ -341,7 +372,15 @@ function VideoSearchItem({ video, onClick }: VideoSearchItemProps) {
         </div>
       </div>
       <div className="flex-1">
-        <h3 className="font-medium line-clamp-2 mb-1">{video.title}</h3>
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="font-medium line-clamp-2">{video.title}</h3>
+          {isEducational && (
+            <div className="flex items-center text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-2 py-0.5 rounded-full ml-2 whitespace-nowrap">
+              <ShieldAlert className="h-3 w-3 mr-1" />
+              Educational
+            </div>
+          )}
+        </div>
         <div className="flex items-center text-sm text-muted-foreground mb-1">
           <span>{video.channelTitle}</span>
           <span className="mx-1.5">•</span>

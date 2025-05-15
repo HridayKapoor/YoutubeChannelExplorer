@@ -267,8 +267,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Search query is required" });
       }
       
-      // Add keyword to filter out shorts
-      const searchQuery = `${query} -shorts`;
+      // Add keywords to filter out shorts and age-restricted content
+      const searchQuery = `${query} -shorts -18+ -adult -nsfw -mature`;
       
       interface SearchResult {
         id: string;
