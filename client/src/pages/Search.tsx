@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearch } from 'wouter/use-location';
+import { useLocation } from 'wouter';
 import axios from 'axios';
 import Header from '@/components/layout/Header';
 import VideoGrid from '@/components/video/VideoGrid';
@@ -46,8 +46,8 @@ interface SearchPlaylist {
 }
 
 export default function Search() {
-  const [search] = useSearch();
-  const urlParams = new URLSearchParams(search);
+  const [location] = useLocation();
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const initialQuery = urlParams.get('q') || '';
 
   const [query, setQuery] = useState(initialQuery);
@@ -58,6 +58,7 @@ export default function Search() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+  const [selectedPlaylist, setSelectedPlaylist] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Search for videos and playlists
@@ -137,6 +138,13 @@ export default function Search() {
   // Handle video click
   const handleVideoClick = (video: any) => {
     setSelectedVideo(video.videoId);
+    setSelectedPlaylist(null);
+  };
+  
+  // Handle playlist click
+  const handlePlaylistClick = (playlist: any) => {
+    setSelectedPlaylist(playlist.playlistId);
+    setSelectedVideo(null);
   };
 
   return (
@@ -172,21 +180,25 @@ export default function Search() {
             </Button>
           </form>
           
-          {selectedVideo && (
+          {(selectedVideo || selectedPlaylist) && (
             <div className="mb-6">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-xl font-semibold">Now Playing</h2>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setSelectedVideo(null)}
+                  onClick={() => {
+                    setSelectedVideo(null);
+                    setSelectedPlaylist(null);
+                  }}
                   className="text-muted-foreground"
                 >
                   <X className="h-4 w-4 mr-1" /> Close
                 </Button>
               </div>
               <div className="aspect-video w-full max-w-3xl mx-auto rounded-md overflow-hidden">
-                <VideoPlayer videoId={selectedVideo} />
+                {selectedVideo && <VideoPlayer videoId={selectedVideo} />}
+                {selectedPlaylist && <VideoPlayer videoId="" playlistId={selectedPlaylist} />}
               </div>
             </div>
           )}

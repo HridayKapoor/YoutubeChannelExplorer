@@ -2,6 +2,9 @@ import { useMemo, useState } from "react";
 import VideoCard from "./VideoCard";
 import VideoPlayer from "./VideoPlayer";
 import { Video } from "@shared/schema";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface VideoGridProps {
@@ -10,6 +13,7 @@ interface VideoGridProps {
   pageSize?: number;
   currentPage?: number;
   onPageChange?: (page: number) => void;
+  onClick?: (video: Video) => void;
 }
 
 export default function VideoGrid({ 
@@ -17,9 +21,11 @@ export default function VideoGrid({
   searchQuery, 
   pageSize = 12,
   currentPage = 1,
-  onPageChange = () => {}
+  onPageChange = () => {},
+  onClick
 }: VideoGridProps) {
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
   
   const filteredVideos = useMemo(() => {
     if (!searchQuery.trim()) return videos;
@@ -37,11 +43,19 @@ export default function VideoGrid({
   const paginatedVideos = filteredVideos.slice(startIndex, startIndex + pageSize);
   
   const handleVideoClick = (video: Video) => {
-    setSelectedVideo(video);
+    if (onClick) {
+      // If external click handler provided (for Search page)
+      onClick(video);
+    } else {
+      // Otherwise handle internally
+      setSelectedVideo(video);
+      setIsPlayerOpen(true);
+    }
   };
   
   const handleClosePlayer = () => {
     setSelectedVideo(null);
+    setIsPlayerOpen(false);
   };
   
   if (filteredVideos.length === 0) {
@@ -176,9 +190,24 @@ export default function VideoGrid({
       </div>
       
       {/* Video Player Modal */}
-      {selectedVideo && (
-        <VideoPlayer video={selectedVideo} onClose={handleClosePlayer} />
-      )}
+      <Dialog open={isPlayerOpen} onOpenChange={setIsPlayerOpen}>
+        <DialogContent className="sm:max-w-[900px] p-0 bg-black overflow-hidden">
+          <div className="relative">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-2 right-2 z-50 bg-black/60 hover:bg-black/80 text-white"
+              onClick={handleClosePlayer}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+            
+            {selectedVideo && (
+              <VideoPlayer videoId={selectedVideo.videoId} autoplay={true} />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -392,6 +392,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Search for YouTube videos (excluding shorts)
+  app.get("/api/search/videos", async (req: Request, res: Response) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
+        params: {
+          part: "snippet",
+          q: query,
+          type: "video",
+          videoDuration: "medium", // Excludes shorts (which are typically "short" duration)
+          maxResults: 24,
+          key: YOUTUBE_API_KEY
+        }
+      });
+      
+      // Additional filter to exclude shorts
+      const results = response.data;
+      
+      // Return search results
+      return res.json(results);
+    } catch (err) {
+      console.error("Error searching videos:", err);
+      return res.status(500).json({ message: "Error searching videos" });
+    }
+  });
+  
+  // Search for YouTube playlists
+  app.get("/api/search/playlists", async (req: Request, res: Response) => {
+    try {
+      const query = req.query.q as string;
+      
+      if (!query) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      
+      const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
+        params: {
+          part: "snippet",
+          q: query,
+          type: "playlist",
+          maxResults: 24,
+          key: YOUTUBE_API_KEY
+        }
+      });
+      
+      // Return search results
+      return res.json(response.data);
+    } catch (err) {
+      console.error("Error searching playlists:", err);
+      return res.status(500).json({ message: "Error searching playlists" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
