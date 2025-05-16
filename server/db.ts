@@ -2,28 +2,24 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
-}
+// Hardcode the Supabase connection string directly
+const connectionString = "postgresql://postgres:m2aJGRPUwp63URwO@db.yflxemvirfhjuvlqmqfr.supabase.co:6543/postgres";
 
 // Configure PostgreSQL connection with SSL enabled
 export const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL,
+  connectionString,
   ssl: {
-    rejectUnauthorized: false // For Supabase connections
+    rejectUnauthorized: false
   }
 });
 
-// Test the connection and log success/failure
-pool.connect((err, client, done) => {
-  if (err) {
-    console.error('Error connecting to database:', err);
-  } else {
-    console.log('Successfully connected to PostgreSQL database');
-    done();
-  }
+// Log connection status
+pool.on('connect', () => {
+  console.log('Connected to Supabase PostgreSQL database');
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected error on idle client', err);
 });
 
 export const db = drizzle(pool, { schema });
