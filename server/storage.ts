@@ -312,8 +312,8 @@ export class DatabaseStorage implements IStorage {
 export class DbStorageAdapter implements IStorage {
   private memStorage = new MemStorage();
   private dbStorage = new DatabaseStorage();
-  // Using in-memory storage since we can't connect to Supabase
-  private useDatabase = false;
+  // Using Supabase database storage
+  private useDatabase = true;
 
   constructor() {
     console.log(`Using ${this.useDatabase ? 'database' : 'in-memory'} storage`);
