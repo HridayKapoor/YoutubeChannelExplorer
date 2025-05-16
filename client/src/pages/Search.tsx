@@ -234,7 +234,31 @@ export default function Search() {
                 
                 <TabsContent value="playlists" className="mt-6">
                   {playlists.length > 0 ? (
-                    <PlaylistGrid playlists={playlists} searchQuery="" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {playlists.map((playlist) => (
+                        <div 
+                          key={playlist.playlistId} 
+                          onClick={() => handlePlaylistClick(playlist)}
+                          className="cursor-pointer transition-transform hover:scale-105"
+                        >
+                          <div className="aspect-video relative overflow-hidden rounded-lg">
+                            <img 
+                              src={playlist.thumbnailUrl} 
+                              alt={playlist.title}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 p-2 flex items-center">
+                              <Layers className="h-4 w-4 text-white mr-2" />
+                              <span className="text-xs text-white">Playlist</span>
+                            </div>
+                          </div>
+                          <div className="mt-2">
+                            <h3 className="font-medium line-clamp-2">{playlist.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{playlist.channelTitle}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <p className="text-muted-foreground">No playlists found. Try a different search term.</p>
                   )}
