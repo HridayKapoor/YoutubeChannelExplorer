@@ -312,8 +312,8 @@ export class DatabaseStorage implements IStorage {
 export class DbStorageAdapter implements IStorage {
   private memStorage = new MemStorage();
   private dbStorage = new DatabaseStorage();
-  // Force in-memory storage for now until database connection is properly established
-  private useDatabase = false;  
+  // Using in-memory storage since we've had issues with the database connection
+  private useDatabase = false;
 
   constructor() {
     console.log(`Using ${this.useDatabase ? 'database' : 'in-memory'} storage`);
