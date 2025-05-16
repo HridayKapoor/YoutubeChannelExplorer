@@ -1,4 +1,10 @@
+import { db } from "./db";
+import { eq, and } from "drizzle-orm";
 import {
+  channels,
+  videos,
+  playlists,
+  playlistItems,
   Channel,
   InsertChannel,
   Video,
@@ -34,61 +40,49 @@ export interface IStorage {
   createPlaylistItem(playlistItem: InsertPlaylistItem): Promise<PlaylistItem>;
 }
 
-export class MemStorage implements IStorage {
-  private channels: Channel[] = [];
-  private videos: Video[] = [];
-  private playlists: Playlist[] = [];
-  private playlistItems: PlaylistItem[] = [];
-  
-  private nextChannelId = 1;
-  private nextVideoId = 1;
-  private nextPlaylistId = 1;
-  private nextPlaylistItemId = 1;
-
+export class DatabaseStorage implements IStorage {
   // Channel operations
   async getChannels(): Promise<Channel[]> {
-    return this.channels;
+    return await db.select().from(channels);
   }
 
   async getChannel(id: number): Promise<Channel | undefined> {
-    return this.channels.find(c => c.id === id);
+    const [channel] = await db.select().from(channels).where(eq(channels.id, id));
+    return channel;
   }
 
   async getChannelByYoutubeId(channelId: string): Promise<Channel | undefined> {
-    return this.channels.find(c => c.channelId === channelId);
+    const [channel] = await db.select().from(channels).where(eq(channels.channelId, channelId));
+    return channel;
   }
 
   async createChannel(channelData: InsertChannel): Promise<Channel> {
-    const newChannel: Channel = {
-      ...channelData,
-      id: this.nextChannelId++,
-      createdAt: new Date(),
-    };
-    this.channels.push(newChannel);
-    return newChannel;
+    const [channel] = await db.insert(channels).values(channelData).returning();
+    return channel;
   }
 
   async deleteChannel(id: number): Promise<boolean> {
     try {
-      // Get channel playlists
-      const channelPlaylists = this.playlists.filter(p => p.channelId === id.toString());
+      // First find playlists to delete their items
+      const channelPlaylists = await db.select().from(playlists).where(eq(playlists.channelId, id.toString()));
       
       // Delete playlist items for each playlist
       for (const playlist of channelPlaylists) {
-        this.playlistItems = this.playlistItems.filter(item => item.playlistId !== playlist.playlistId);
+        await db.delete(playlistItems).where(eq(playlistItems.playlistId, playlist.playlistId));
       }
       
       // Delete playlists
-      this.playlists = this.playlists.filter(p => p.channelId !== id.toString());
+      await db.delete(playlists).where(eq(playlists.channelId, id.toString()));
       
       // Delete videos
-      this.videos = this.videos.filter(v => v.channelId !== id.toString());
+      await db.delete(videos).where(eq(videos.channelId, id.toString()));
       
       // Finally delete the channel
-      const initialLength = this.channels.length;
-      this.channels = this.channels.filter(c => c.id !== id);
+      await db.delete(channels).where(eq(channels.id, id));
       
-      return this.channels.length < initialLength;
+      // Check if the channel was deleted
+      const channel = await this.getChannel(id);
+      return channel === undefined;
     } catch (error) {
       console.error("Error deleting channel:", error);
       return false;
@@ -97,76 +91,70 @@ export class MemStorage implements IStorage {
 
   // Video operations
   async getVideos(channelId: string): Promise<Video[]> {
-    return this.videos.filter(v => v.channelId === channelId);
+    return await db.select().from(videos).where(eq(videos.channelId, channelId));
   }
 
   async getVideo(id: number): Promise<Video | undefined> {
-    return this.videos.find(v => v.id === id);
+    const [video] = await db.select().from(videos).where(eq(videos.id, id));
+    return video;
   }
 
   async getVideoByYoutubeId(videoId: string): Promise<Video | undefined> {
-    return this.videos.find(v => v.videoId === videoId);
+    const [video] = await db.select().from(videos).where(eq(videos.videoId, videoId));
+    return video;
   }
 
   async createVideo(videoData: InsertVideo): Promise<Video> {
-    const newVideo: Video = {
-      ...videoData,
-      id: this.nextVideoId++,
-      createdAt: new Date(),
-    };
-    this.videos.push(newVideo);
-    return newVideo;
+    const [video] = await db.insert(videos).values(videoData).returning();
+    return video;
   }
 
   // Playlist operations
   async getPlaylists(channelId: string): Promise<Playlist[]> {
-    return this.playlists.filter(p => p.channelId === channelId);
+    return await db.select().from(playlists).where(eq(playlists.channelId, channelId));
   }
 
   async getPlaylist(id: number): Promise<Playlist | undefined> {
-    return this.playlists.find(p => p.id === id);
+    const [playlist] = await db.select().from(playlists).where(eq(playlists.id, id));
+    return playlist;
   }
 
   async getPlaylistByYoutubeId(playlistId: string): Promise<Playlist | undefined> {
-    return this.playlists.find(p => p.playlistId === playlistId);
+    const [playlist] = await db.select().from(playlists).where(eq(playlists.playlistId, playlistId));
+    return playlist;
   }
 
   async createPlaylist(playlistData: InsertPlaylist): Promise<Playlist> {
-    const newPlaylist: Playlist = {
-      ...playlistData,
-      id: this.nextPlaylistId++,
-      createdAt: new Date(),
-    };
-    this.playlists.push(newPlaylist);
-    return newPlaylist;
+    const [playlist] = await db.insert(playlists).values(playlistData).returning();
+    return playlist;
   }
 
   // Playlist item operations
   async getPlaylistItems(playlistId: string): Promise<PlaylistItem[]> {
-    return this.playlistItems
-      .filter(item => item.playlistId === playlistId)
-      .sort((a, b) => a.position - b.position);
+    return await db.select()
+      .from(playlistItems)
+      .where(eq(playlistItems.playlistId, playlistId))
+      .orderBy(playlistItems.position);
   }
 
   async createPlaylistItem(playlistItemData: InsertPlaylistItem): Promise<PlaylistItem> {
     // Check if the playlist item already exists
-    const existingItem = this.playlistItems.find(
-      item => item.playlistId === playlistItemData.playlistId && 
-              item.videoId === playlistItemData.videoId
-    );
+    const [existingItem] = await db.select()
+      .from(playlistItems)
+      .where(
+        and(
+          eq(playlistItems.playlistId, playlistItemData.playlistId),
+          eq(playlistItems.videoId, playlistItemData.videoId)
+        )
+      );
     
     if (existingItem) {
       return existingItem;
     }
     
-    const newPlaylistItem: PlaylistItem = {
-      ...playlistItemData,
-      id: this.nextPlaylistItemId++,
-      createdAt: new Date(),
-    };
-    this.playlistItems.push(newPlaylistItem);
-    return newPlaylistItem;
+    const [playlistItem] = await db.insert(playlistItems).values(playlistItemData).returning();
+    return playlistItem;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
