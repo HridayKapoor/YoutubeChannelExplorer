@@ -312,7 +312,7 @@ export class DatabaseStorage implements IStorage {
 export class DbStorageAdapter implements IStorage {
   private memStorage = new MemStorage();
   private dbStorage = new DatabaseStorage();
-  // Using in-memory storage since we've had issues with the database connection
+  // Using in-memory storage since we can't connect to Supabase
   private useDatabase = false;
 
   constructor() {
