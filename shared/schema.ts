@@ -141,8 +141,38 @@ export const categoryChannelsRelations = relations(categoryChannels, ({ one }) =
   }),
 }));
 
+// Custom Categories Schema
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const categoryChannels = pgTable("category_channels", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").notNull(),
+  channelId: text("channel_id").notNull(),
+});
+
+// Watch Later Schema
+export const watchLater = pgTable("watch_later", {
+  id: serial("id").primaryKey(),
+  videoId: text("video_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const categoryChannelsRelations = relations(categoryChannels, ({ one }) => ({
+  category: one(categories, {
+    fields: [categoryChannels.categoryId],
+    references: [categories.id],
+  }),
+}));
+
 export type PlaylistItem = typeof playlistItems.$inferSelect;
 export type InsertPlaylistItem = z.infer<typeof insertPlaylistItemSchema>;
+export type Category = typeof categories.$inferSelect;
+export type CategoryChannel = typeof categoryChannels.$inferSelect;
+export type WatchLater = typeof watchLater.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type CategoryChannel = typeof categoryChannels.$inferSelect;
 export type WatchLater = typeof watchLater.$inferSelect;
