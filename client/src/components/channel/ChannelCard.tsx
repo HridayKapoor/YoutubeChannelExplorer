@@ -18,14 +18,14 @@ interface ChannelCardProps {
 }
 
 export default function ChannelCard({ channel, selectedFolder }: ChannelCardProps) {
-  const { folders, addChannelToFolder, removeChannelFromFolder } = useFolders();
+  const folders = [];
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (confirm(`Are you sure you want to delete ${channel.title}?`)) {
       try {
         setIsDeleting(true);
@@ -63,7 +63,7 @@ export default function ChannelCard({ channel, selectedFolder }: ChannelCardProp
               <p className="text-white/80 text-sm">{formatSubscriberCount(channel.subscriberCount)}</p>
             </div>
           </div>
-          
+
           {/* Delete button */}
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button 

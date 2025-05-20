@@ -4,7 +4,7 @@ import { queryClient } from "@/lib/queryClient";
 import { ThemeProvider } from "./components/ui/ThemeToggle";
 import { Toaster } from "./components/ui/toaster";
 import { TooltipProvider } from "./components/ui/tooltip";
-import { FolderProvider } from "./contexts/FolderContext";
+
 
 // Pages
 import Home from "./pages/Home";
@@ -18,21 +18,19 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <FolderProvider>
-          <TooltipProvider>
-            <Router>
-              <Switch>
-                <Route path="/" component={Home} />
-                <Route path="/channel/:id" component={ChannelDetail} />
-                <Route path="/playlist/:id" component={PlaylistDetail} />
-                <Route path="/watch-later" component={WatchLater} />
-                <Route path="/search" component={Search} />
-                <Route component={NotFound} />
-              </Switch>
-            </Router>
-            <Toaster />
-          </TooltipProvider>
-        </FolderProvider>
+        <TooltipProvider>
+          <Router>
+            <Switch>
+              <Route path="/" component={Home} />
+              <Route path="/channel/:id" component={ChannelDetail} />
+              <Route path="/playlist/:id" component={PlaylistDetail} />
+              <Route path="/watch-later" component={WatchLater} />
+              <Route path="/search" component={Search} />
+              <Route component={NotFound} />
+            </Switch>
+          </Router>
+          <Toaster />
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
