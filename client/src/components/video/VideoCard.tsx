@@ -1,11 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Video } from "@shared/schema";
-import { formatDuration, formatViewCount, formatTimeAgo } from "@/lib/api";
-import { PlayIcon } from "lucide-react";
+import { formatDuration, formatTimeAgo, addToWatchLater } from "@/lib/api";
+import { useNavigate } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
-import { addToWatchLater } from "@/lib/api";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface VideoCardProps {
   video: Video;
@@ -50,6 +50,21 @@ export default function VideoCard({ video, onClick }: VideoCardProps) {
           {formatViewCount(video.viewCount)} • {formatTimeAgo(video.publishedAt)}
         </p>
         <p className="text-sm text-foreground/80 line-clamp-2">{video.description}</p>
+              <Button 
+        variant="outline" 
+        size="sm" 
+        className="mt-2"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          addToWatchLater(video.videoId)
+            .then(() => toast.success("Added to Watch Later"))
+            .catch(() => toast.error("Failed to add to Watch Later"));
+        }}
+      >
+        <Clock className="h-4 w-4 mr-2" />
+        Save to Watch Later
+      </Button>
       </CardContent>
     </Card>
   );

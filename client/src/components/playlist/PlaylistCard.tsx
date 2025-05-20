@@ -1,6 +1,10 @@
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Playlist } from "@shared/schema";
+import { Button } from "@/components/ui/button";
+import { Clock } from "lucide-react";
+import { addPlaylistToWatchLater } from "@/lib/api";
+import { toast } from "sonner";
 import { Layers } from "lucide-react";
 
 interface PlaylistCardProps {
@@ -32,6 +36,21 @@ export default function PlaylistCard({ playlist }: PlaylistCardProps) {
           <p className="text-sm text-foreground/80 line-clamp-2">
             {playlist.description || "No description available."}
           </p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              addPlaylistToWatchLater(playlist.playlistId)
+                .then(() => toast.success("Playlist added to Watch Later"))
+                .catch(() => toast.error("Failed to add playlist to Watch Later"));
+            }}
+          >
+            <Clock className="h-4 w-4 mr-2" />
+            Save to Watch Later
+          </Button>
         </CardContent>
       </Card>
     </Link>
