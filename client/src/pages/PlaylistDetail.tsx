@@ -36,7 +36,7 @@ export default function PlaylistDetail() {
   
   // Filter videos based on search query
   const filteredVideos = videos && searchQuery.trim()
-    ? videos.filter(video => 
+    ? videos.filter((video: Video) => 
         video.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
         (video.description && video.description.toLowerCase().includes(searchQuery.toLowerCase()))
       )
@@ -194,7 +194,7 @@ export default function PlaylistDetail() {
       
       {/* Video Player Modal */}
       {selectedVideo && (
-        <VideoPlayer video={selectedVideo} onClose={handleClosePlayer} />
+        <VideoPlayer videoId={selectedVideo.videoId} playlistId={playlistId} autoplay={true} />
       )}
     </div>
   );
