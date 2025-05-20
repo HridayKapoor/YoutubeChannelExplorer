@@ -18,9 +18,9 @@ import NotFound from "./pages/not-found";
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <FolderProvider>
-        <ThemeProvider>
-          <TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <FolderProvider>
             <Router>
               <Switch>
                 <Route path="/" component={Home} />
