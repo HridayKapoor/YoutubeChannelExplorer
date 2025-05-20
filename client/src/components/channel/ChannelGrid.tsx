@@ -9,15 +9,15 @@ interface ChannelGridProps {
 
 export default function ChannelGrid({ channels, searchQuery = "" }: ChannelGridProps) {
   const filteredChannels = useMemo(() => {
-    if (!searchQuery.trim()) return channels;
-    
+    if (!searchQuery?.trim()) return channels;
+
     const query = searchQuery.toLowerCase();
     return channels.filter(channel => 
       channel.title.toLowerCase().includes(query) || 
       (channel.description && channel.description.toLowerCase().includes(query))
     );
   }, [channels, searchQuery]);
-  
+
   if (filteredChannels.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -30,7 +30,7 @@ export default function ChannelGrid({ channels, searchQuery = "" }: ChannelGridP
       </div>
     );
   }
-  
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {filteredChannels.map(channel => (

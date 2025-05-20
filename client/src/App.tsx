@@ -1,4 +1,3 @@
-
 import { Route, Switch, Router } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
@@ -19,8 +18,8 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
-          <FolderProvider>
+        <FolderProvider>
+          <TooltipProvider>
             <Router>
               <Switch>
                 <Route path="/" component={Home} />
@@ -32,8 +31,8 @@ export default function App() {
               </Switch>
             </Router>
             <Toaster />
-          </FolderProvider>
-        </TooltipProvider>
+          </TooltipProvider>
+        </FolderProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

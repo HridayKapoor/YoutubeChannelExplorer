@@ -16,6 +16,7 @@ export default function Home() {
   const [addChannelOpen, setAddChannelOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { folders, addFolder } = useFolders();
 
   const { data: channels, isLoading, error } = useQuery({
@@ -132,7 +133,7 @@ export default function Home() {
         <ChannelGrid 
           channels={displayChannels} 
           selectedFolder={selectedFolder}
-          searchQuery=""
+          searchQuery={searchQuery}
         />
       </>
     );
