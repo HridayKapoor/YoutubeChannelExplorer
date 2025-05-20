@@ -42,10 +42,10 @@ export async function fetchPlaylistVideos(playlistId: string) {
 // Utility function to format subscriber counts
 export function formatSubscriberCount(count: string | undefined): string {
   if (!count) return "0 subscribers";
-  
+
   const num = parseInt(count);
   if (isNaN(num)) return "0 subscribers";
-  
+
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M subscribers';
   } else if (num >= 1000) {
@@ -58,14 +58,14 @@ export function formatSubscriberCount(count: string | undefined): string {
 // Format video duration from ISO 8601 format
 export function formatDuration(isoDuration: string | undefined): string {
   if (!isoDuration) return "0:00";
-  
+
   const match = isoDuration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
   if (!match) return "0:00";
-  
+
   const hours = parseInt(match[1] || "0");
   const minutes = parseInt(match[2] || "0");
   const seconds = parseInt(match[3] || "0");
-  
+
   if (hours > 0) {
     return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   } else {
@@ -76,10 +76,10 @@ export function formatDuration(isoDuration: string | undefined): string {
 // Format view count
 export function formatViewCount(count: string | undefined): string {
   if (!count) return "0 views";
-  
+
   const num = parseInt(count);
   if (isNaN(num)) return "0 views";
-  
+
   if (num >= 1000000) {
     return (num / 1000000).toFixed(1) + 'M views';
   } else if (num >= 1000) {
@@ -92,13 +92,13 @@ export function formatViewCount(count: string | undefined): string {
 // Format time ago from published date
 export function formatTimeAgo(dateString: string | undefined): string {
   if (!dateString) return "";
-  
+
   const date = new Date(dateString);
   const now = new Date();
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
+
   let interval = seconds / 31536000; // years
-  
+
   if (interval > 1) {
     return Math.floor(interval) + " years ago";
   }
@@ -119,4 +119,29 @@ export function formatTimeAgo(dateString: string | undefined): string {
     return Math.floor(interval) + " minutes ago";
   }
   return Math.floor(seconds) + " seconds ago";
+}
+
+export async function fetchCategories() {
+  const response = await apiRequest("GET", '/api/categories');
+  return await response.json();
+}
+
+export async function createCategory(title: string) {
+  const response = await apiRequest("POST", '/api/categories', { title });
+  return await response.json();
+}
+
+export async function addToWatchLater(videoId: string) {
+  const response = await apiRequest("POST", '/api/watch-later', { videoId });
+  return await response.json();
+}
+
+export async function fetchWatchLaterVideos() {
+  const response = await apiRequest("GET", '/api/watch-later');
+  return await response.json();
+}
+
+export async function importYoutubePlaylist(playlistUrl: string) {
+  const response = await apiRequest("POST", '/api/playlists/import', { url: playlistUrl });
+  return await response.json();
 }
