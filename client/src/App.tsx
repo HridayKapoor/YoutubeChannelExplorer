@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import ChannelDetail from "@/pages/ChannelDetail";
 import PlaylistDetail from "@/pages/PlaylistDetail";
 import Search from "@/pages/Search";
+import WatchLater from "@/pages/WatchLater";
 
 function Router() {
   return (
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/channel/:id" component={ChannelDetail} />
       <Route path="/playlist/:id" component={PlaylistDetail} />
       <Route path="/search" component={Search} />
+      <Route path="/watch-later" component={WatchLater} />
       <Route component={NotFound} />
     </Switch>
   );

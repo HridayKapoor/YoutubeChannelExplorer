@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Dev Server"
+runButton = "Restart Dev Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -37,6 +37,15 @@ waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Dev Server"
+author = 42924539
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_ENV=development npx tsx server/index.ts"
+
+[[workflows.workflow]]
+name = "Restart Dev Server"
 author = 42924539
 mode = "sequential"
 
