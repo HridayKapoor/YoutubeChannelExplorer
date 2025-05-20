@@ -2,6 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Video } from "@shared/schema";
 import { formatDuration, formatViewCount, formatTimeAgo } from "@/lib/api";
 import { PlayIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Clock } from "lucide-react";
+import { addToWatchLater } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface VideoCardProps {
   video: Video;
@@ -17,7 +21,9 @@ export default function VideoCard({ video, onClick }: VideoCardProps) {
       window.open(`https://www.youtube.com/watch?v=${video.videoId}`, "_blank");
     }
   };
-  
+
+  const { toast } = useToast();
+
   return (
     <Card 
       className="overflow-hidden transition-all duration-200 hover:shadow-md cursor-pointer"
