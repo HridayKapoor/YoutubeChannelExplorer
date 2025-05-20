@@ -193,8 +193,8 @@ export default function PlaylistDetail() {
       </main>
       
       {/* Video Player Modal */}
-      {selectedVideo && (
-        <VideoPlayer videoId={selectedVideo.videoId} playlistId={playlistId} autoplay={true} />
+      {selectedVideo && playlist?.playlistId && (
+        <VideoPlayer videoId={selectedVideo.videoId} playlistId={playlist.playlistId} autoplay={true} />
       )}
     </div>
   );
