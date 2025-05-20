@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import { useFolders } from "@/contexts/FolderContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Channel } from "@shared/schema";
