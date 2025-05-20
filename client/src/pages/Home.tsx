@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchChannels } from "@/lib/api";
@@ -18,7 +17,7 @@ export default function Home() {
   const [newFolderName, setNewFolderName] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const { folders, addFolder } = useFolders();
-  
+
   const { data: channels, isLoading, error } = useQuery({
     queryKey: ["/api/channels"],
     queryFn: fetchChannels
@@ -30,7 +29,7 @@ export default function Home() {
       setNewFolderName("");
     }
   };
-  
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -47,7 +46,7 @@ export default function Home() {
         </div>
       );
     }
-    
+
     if (error) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -59,7 +58,7 @@ export default function Home() {
         </div>
       );
     }
-    
+
     if (!channels || channels.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-16 md:py-32 text-center">
@@ -86,7 +85,7 @@ export default function Home() {
           folders.find(f => f.id === selectedFolder)?.channelIds.includes(channel.channelId)
         )
       : channels;
-    
+
     return (
       <>
         <div className="flex items-center justify-between mb-6">
@@ -105,7 +104,7 @@ export default function Home() {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm">
@@ -129,23 +128,24 @@ export default function Home() {
             </Dialog>
           </div>
         </div>
-        
+
         <ChannelGrid 
           channels={displayChannels} 
           selectedFolder={selectedFolder}
+          searchQuery=""
         />
       </>
     );
   };
-  
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container px-4 py-6 md:py-8">
         {renderContent()}
       </main>
-      
+
       <AddChannelDialog 
         open={addChannelOpen} 
         onOpenChange={setAddChannelOpen} 

@@ -7,7 +7,7 @@ interface ChannelGridProps {
   searchQuery: string;
 }
 
-export default function ChannelGrid({ channels, searchQuery }: ChannelGridProps) {
+export default function ChannelGrid({ channels, searchQuery = "" }: ChannelGridProps) {
   const filteredChannels = useMemo(() => {
     if (!searchQuery.trim()) return channels;
     
