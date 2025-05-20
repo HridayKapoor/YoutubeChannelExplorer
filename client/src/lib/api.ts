@@ -146,21 +146,6 @@ export function formatTimeAgo(dateString: string | undefined): string {
   return Math.floor(seconds) + " seconds ago";
 }
 
-export async function fetchCategories() {
-  const response = await apiRequest("GET", '/api/categories');
-  return await response.json();
-}
-
-export async function createCategory(title: string) {
-  const response = await apiRequest("POST", '/api/categories', { title });
-  return await response.json();
-}
-
-export async function addToWatchLater(videoId: string) {
-  const response = await apiRequest("POST", '/api/watch-later', { videoId });
-  return await response.json();
-}
-
 export async function fetchWatchLaterVideos() {
   const response = await apiRequest("GET", '/api/watch-later');
   return await response.json();
