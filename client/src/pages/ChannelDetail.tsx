@@ -22,7 +22,6 @@ export default function ChannelDetail() {
   const [sortOrder, setSortOrder] = useState("recent");
   const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshingPlaylists, setIsRefreshingPlaylists] = useState(false);
-  const [isRefreshingVideos, setIsRefreshingVideos] = useState(false);
   const { toast } = useToast();
   
   // Fetch channel data
@@ -181,39 +180,7 @@ export default function ChannelDetail() {
           />
           
           {tab === "videos" && (
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={async () => {
-                  if (!channel?.channelId || isRefreshingVideos) return;
-                  try {
-                    setIsRefreshingVideos(true);
-                    toast({
-                      title: "Refreshing videos...",
-                      description: "Fetching the latest videos from YouTube."
-                    });
-                    await fetchChannelVideos(channel.channelId, true);
-                    toast({
-                      title: "Videos refreshed",
-                      description: "All videos have been updated from YouTube."
-                    });
-                  } catch (error) {
-                    toast({
-                      title: "Error refreshing videos",
-                      description: "There was a problem fetching videos. Please try again.",
-                      variant: "destructive"
-                    });
-                  } finally {
-                    setIsRefreshingVideos(false);
-                  }
-                }}
-                disabled={isRefreshingVideos}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${isRefreshingVideos ? 'animate-spin' : ''}`} />
-                {isRefreshingVideos ? 'Refreshing...' : 'Refresh Videos'}
-              </Button>
+            <div className="flex-shrink-0">
               <Select value={sortOrder} onValueChange={setSortOrder}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Sort by" />

@@ -20,19 +20,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     return res.status(500).json({ message: "Internal server error" });
   };
-
+  
   // Add a new channel by URL or ID
   app.post("/api/channels", async (req: Request, res: Response) => {
     try {
       const { url } = req.body;
-
+      
       if (!url) {
         return res.status(400).json({ message: "Channel URL is required" });
       }
-
+      
       // Extract channel ID from URL
       let channelId = url;
-
+      
       if (url.includes("youtube.com")) {
         // Handle different YouTube URL formats
         if (url.includes("/channel/")) {
@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Handle both regular URLs and mobile URLs
           const match = url.match(/\/(c|@)\/([^\/\?]+)/) || url.match(/@([^\/\?]+)/);
           const customUsername = (match && match[2]) ? match[2] : (match && match[1] ? match[1] : null);
-
+          
           if (customUsername) {
             console.log(`Searching for channel with username: ${customUsername}`);
             try {
@@ -55,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   key: YOUTUBE_API_KEY
                 }
               });
-
+              
               if (response.data.items && response.data.items.length > 0) {
                 channelId = response.data.items[0].id.channelId;
                 console.log(`Found channel ID: ${channelId}`);
@@ -70,13 +70,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-
+      
       // Check if channel already exists
       const existingChannel = await storage.getChannelByYoutubeId(channelId);
       if (existingChannel) {
         return res.status(200).json(existingChannel);
       }
-
+      
       // Fetch channel data from YouTube API
       const response = await axios.get(`${YOUTUBE_API_BASE}/channels`, {
         params: {
@@ -85,13 +85,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           key: YOUTUBE_API_KEY
         }
       });
-
+      
       if (!response.data.items || response.data.items.length === 0) {
         return res.status(404).json({ message: "Channel not found" });
       }
-
+      
       const channelData = response.data.items[0];
-
+      
       // Prepare channel data
       const channelToInsert = {
         channelId: channelData.id,
@@ -103,14 +103,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         videoCount: parseInt(channelData.statistics.videoCount),
         viewCount: channelData.statistics.viewCount
       };
-
+      
       // Validate and insert channel
       const validatedData = insertChannelSchema.parse(channelToInsert);
       const channel = await storage.createChannel(validatedData);
-
+      
       // Fetch channel's uploads playlist ID
       const uploadsPlaylistId = channelData.contentDetails.relatedPlaylists.uploads;
-
+      
       // Create an uploads playlist entry
       const uploadsPlaylist = {
         playlistId: uploadsPlaylistId,
@@ -120,23 +120,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         thumbnailUrl: channelData.snippet.thumbnails.high?.url || channelData.snippet.thumbnails.default?.url,
         itemCount: parseInt(channelData.statistics.videoCount)
       };
-
+      
       const validatedPlaylist = insertPlaylistSchema.parse(uploadsPlaylist);
       await storage.createPlaylist(validatedPlaylist);
-
+      
       // Get all playlists for the channel
       await fetchAndStoreChannelPlaylists(channelData.id);
-
+      
       // Get videos for the uploads playlist
       await fetchAndStorePlaylistVideos(uploadsPlaylistId, channelData.id);
-
+      
       return res.status(201).json(channel);
     } catch (err) {
       console.error("Error adding channel:", err);
       return handleValidationError(err, res);
     }
   });
-
+  
   // Get all channels
   app.get("/api/channels", async (_req: Request, res: Response) => {
     try {
@@ -147,7 +147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Error getting channels" });
     }
   });
-
+  
   // Delete a channel
   app.delete("/api/channels/:id", async (req: Request, res: Response) => {
     try {
@@ -155,7 +155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(id)) {
         return res.status(400).json({ message: "Invalid channel ID" });
       }
-
+      
       const success = await storage.deleteChannel(id);
       if (success) {
         return res.json({ success: true });
@@ -167,24 +167,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Error deleting channel" });
     }
   });
-
+  
   // Get channel by ID
   app.get("/api/channels/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const channel = await storage.getChannel(id);
-
+      
       if (!channel) {
         return res.status(404).json({ message: "Channel not found" });
       }
-
+      
       return res.json(channel);
     } catch (err) {
       console.error("Error getting channel:", err);
       return res.status(500).json({ message: "Error getting channel" });
     }
   });
-
+  
   // Get videos for a channel
   app.get("/api/channels/:channelId/videos", async (req: Request, res: Response) => {
     try {
@@ -196,19 +196,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Error getting videos" });
     }
   });
-
+  
   // Get playlists for a channel
   app.get("/api/channels/:channelId/playlists", async (req: Request, res: Response) => {
     try {
       const { channelId } = req.params;
-
+      
       // Check if we need to refresh playlists from YouTube
       const refreshParam = req.query.refresh;
       if (refreshParam === 'true') {
         // This will fetch and store fresh data from YouTube
         await fetchAndStoreChannelPlaylists(channelId);
       }
-
+      
       const playlists = await storage.getPlaylists(channelId);
       return res.json(playlists);
     } catch (err) {
@@ -216,32 +216,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: "Error getting playlists" });
     }
   });
-
+  
   // Get a specific playlist
   app.get("/api/playlists/:playlistId", async (req: Request, res: Response) => {
     try {
       const { playlistId } = req.params;
       const playlist = await storage.getPlaylistByYoutubeId(playlistId);
-
+      
       if (!playlist) {
         return res.status(404).json({ message: "Playlist not found" });
       }
-
+      
       return res.json(playlist);
     } catch (err) {
       console.error("Error getting playlist:", err);
       return res.status(500).json({ message: "Error getting playlist" });
     }
   });
-
+  
   // Get videos for a playlist
   app.get("/api/playlists/:playlistId/videos", async (req: Request, res: Response) => {
     try {
       const { playlistId } = req.params;
-
+      
       // Get playlist items
       const playlistItems = await storage.getPlaylistItems(playlistId);
-
+      
       // Get video details for each item
       const videos = [];
       for (const item of playlistItems) {
@@ -250,19 +250,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           videos.push({ ...video, position: item.position });
         }
       }
-
+      
       return res.json(videos);
     } catch (err) {
       console.error("Error getting playlist videos:", err);
       return res.status(500).json({ message: "Error getting playlist videos" });
     }
   });
-
+  
   // Fetch and store all playlists for a channel
   async function fetchAndStoreChannelPlaylists(channelId: string) {
     try {
       let nextPageToken: string | undefined = undefined;
-
+      
       do {
         const playlistsResponse: any = await axios.get(`${YOUTUBE_API_BASE}/playlists`, {
           params: {
@@ -273,7 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             key: YOUTUBE_API_KEY
           }
         });
-
+        
         if (playlistsResponse.data.items && playlistsResponse.data.items.length > 0) {
           for (const item of playlistsResponse.data.items) {
             const playlistData = {
@@ -284,33 +284,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
               thumbnailUrl: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
               itemCount: item.contentDetails.itemCount
             };
-
+            
             // Check if playlist already exists
             const existingPlaylist = await storage.getPlaylistByYoutubeId(item.id);
             if (!existingPlaylist) {
               const validatedPlaylist = insertPlaylistSchema.parse(playlistData);
               await storage.createPlaylist(validatedPlaylist);
-
+              
               // Fetch videos for this playlist
               await fetchAndStorePlaylistVideos(item.id, channelId);
             }
           }
         }
-
+        
         nextPageToken = playlistsResponse.data.nextPageToken;
       } while (nextPageToken);
-
+      
     } catch (err) {
       console.error("Error fetching channel playlists:", err);
     }
   }
-
+  
   // Fetch and store videos for a playlist
   async function fetchAndStorePlaylistVideos(playlistId: string, channelId: string) {
     try {
       let nextPageToken: string | undefined = undefined;
       let position = 0;
-
+      
       do {
         const playlistItemsResponse: any = await axios.get(`${YOUTUBE_API_BASE}/playlistItems`, {
           params: {
@@ -321,13 +321,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             key: YOUTUBE_API_KEY
           }
         });
-
+        
         if (playlistItemsResponse.data.items && playlistItemsResponse.data.items.length > 0) {
           // Extract video IDs for a batch request
           const videoIds = playlistItemsResponse.data.items.map((item: any) => 
             item.snippet.resourceId.videoId
           ).join(",");
-
+          
           // Fetch video details in a batch
           const videoDetailsResponse = await axios.get(`${YOUTUBE_API_BASE}/videos`, {
             params: {
@@ -336,23 +336,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
               key: YOUTUBE_API_KEY
             }
           });
-
+          
           const videoDetailsMap = new Map();
           if (videoDetailsResponse.data.items) {
             for (const videoDetail of videoDetailsResponse.data.items) {
               videoDetailsMap.set(videoDetail.id, videoDetail);
             }
           }
-
+          
           // Process each playlistItem
           for (const item of playlistItemsResponse.data.items) {
             const videoId = item.snippet.resourceId.videoId;
             const videoDetails = videoDetailsMap.get(videoId);
-
+            
             if (videoDetails) {
               // Check if video already exists
               let video = await storage.getVideoByYoutubeId(videoId);
-
+              
               if (!video) {
                 // Add video to database
                 const videoData = {
@@ -366,43 +366,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   viewCount: videoDetails.statistics.viewCount,
                   likeCount: videoDetails.statistics.likeCount
                 };
-
+                
                 const validatedVideo = insertVideoSchema.parse(videoData);
                 video = await storage.createVideo(validatedVideo);
               }
-
+              
               // Create playlist item entry
               const playlistItemData = {
                 playlistId: playlistId,
                 videoId: videoId,
                 position: position++
               };
-
+              
               const validatedPlaylistItem = insertPlaylistItemSchema.parse(playlistItemData);
               await storage.createPlaylistItem(validatedPlaylistItem);
             }
           }
         }
-
+        
         nextPageToken = playlistItemsResponse.data.nextPageToken;
       } while (nextPageToken);
-
+      
     } catch (err) {
       console.error("Error fetching playlist videos:", err);
     }
   }
 
-
-
+  
+  
   // Search for YouTube playlists
   app.get("/api/search/playlists", async (req: Request, res: Response) => {
     try {
       const query = req.query.q as string;
-
+      
       if (!query) {
         return res.status(400).json({ message: "Search query is required" });
       }
-
+      
       const response = await axios.get(`${YOUTUBE_API_BASE}/search`, {
         params: {
           part: "snippet",
@@ -412,47 +412,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           key: YOUTUBE_API_KEY
         }
       });
-
+      
       // Return search results
       return res.json(response.data);
     } catch (err) {
       console.error("Error searching playlists:", err);
       return res.status(500).json({ message: "Error searching playlists" });
-    }
-  });
-
-  // Add Watch Later endpoints
-  app.post("/api/watch-later", async (req: Request, res: Response) => {
-    try {
-      const { videoId } = req.body;
-      if (!videoId) {
-        return res.status(400).json({ message: "Video ID is required" });
-      }
-
-      await storage.addToWatchLater(videoId);
-      return res.json({ success: true });
-    } catch (err) {
-      console.error("Error adding to watch later:", err);
-      return res.status(500).json({ message: "Error adding to watch later" });
-    }
-  });
-
-  app.post("/api/watch-later/playlist", async (req: Request, res: Response) => {
-    try {
-      const { playlistId } = req.body;
-      if (!playlistId) {
-        return res.status(400).json({ message: "Playlist ID is required" });
-      }
-
-      const playlistVideos = await storage.getPlaylistVideos(playlistId);
-      for (const video of playlistVideos) {
-        await storage.addToWatchLater(video.videoId);
-      }
-
-      return res.json({ success: true });
-    } catch (err) {
-      console.error("Error adding playlist to watch later:", err);
-      return res.status(500).json({ message: "Error adding playlist to watch later" });
     }
   });
 

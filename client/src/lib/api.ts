@@ -1,3 +1,4 @@
+
 import { apiRequest } from "@/lib/queryClient";
 
 // Channel API functions
@@ -125,16 +126,6 @@ export async function fetchWatchLaterVideos() {
   return await response.json();
 }
 
-export async function addToWatchLater(videoId: string) {
-  const response = await apiRequest("POST", '/api/watch-later', { videoId });
-  return await response.json();
-}
-
-export async function addPlaylistToWatchLater(playlistId: string) {
-  const response = await apiRequest("POST", '/api/watch-later/playlist', { playlistId });
-  return await response.json();
-}
-
 export async function importYoutubePlaylist(playlistUrl: string) {
   const response = await apiRequest("POST", '/api/playlists/import', { url: playlistUrl });
   return await response.json();
@@ -147,5 +138,10 @@ export async function fetchCategories() {
 
 export async function createCategory(title: string) {
   const response = await apiRequest("POST", '/api/categories', { title });
+  return await response.json();
+}
+
+export async function addToWatchLater(videoId: string) {
+  const response = await apiRequest("POST", '/api/watch-later', { videoId });
   return await response.json();
 }
