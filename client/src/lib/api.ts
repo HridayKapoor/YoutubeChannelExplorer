@@ -1,3 +1,4 @@
+
 import { apiRequest } from "@/lib/queryClient";
 
 // Channel API functions
@@ -89,32 +90,6 @@ export function formatViewCount(count: string | undefined): string {
   }
 }
 
-// Format time ago from published date
-export async function fetchCategories() {
-  const response = await apiRequest("GET", '/api/categories');
-  return await response.json();
-}
-
-export async function createCategory(title: string) {
-  const response = await apiRequest("POST", '/api/categories', { title });
-  return await response.json();
-}
-
-export async function addToWatchLater(videoId: string) {
-  const response = await apiRequest("POST", '/api/watch-later', { videoId });
-  return await response.json();
-}
-
-export async function fetchWatchLaterVideos() {
-  const response = await apiRequest("GET", '/api/watch-later');
-  return await response.json();
-}
-
-export async function importYoutubePlaylist(playlistUrl: string) {
-  const response = await apiRequest("POST", '/api/playlists/import', { url: playlistUrl });
-  return await response.json();
-}
-
 export function formatTimeAgo(dateString: string | undefined): string {
   if (!dateString) return "";
 
@@ -153,5 +128,20 @@ export async function fetchWatchLaterVideos() {
 
 export async function importYoutubePlaylist(playlistUrl: string) {
   const response = await apiRequest("POST", '/api/playlists/import', { url: playlistUrl });
+  return await response.json();
+}
+
+export async function fetchCategories() {
+  const response = await apiRequest("GET", '/api/categories');
+  return await response.json();
+}
+
+export async function createCategory(title: string) {
+  const response = await apiRequest("POST", '/api/categories', { title });
+  return await response.json();
+}
+
+export async function addToWatchLater(videoId: string) {
+  const response = await apiRequest("POST", '/api/watch-later', { videoId });
   return await response.json();
 }
