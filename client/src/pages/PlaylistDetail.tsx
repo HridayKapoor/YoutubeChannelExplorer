@@ -194,7 +194,24 @@ export default function PlaylistDetail() {
       
       {/* Video Player Modal */}
       {selectedVideo && playlist?.playlistId && (
-        <VideoPlayer videoId={selectedVideo.videoId} playlistId={playlist.playlistId} autoplay={true} />
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-background rounded-lg w-full max-w-4xl">
+            <div className="p-4">
+              <VideoPlayer 
+                videoId={selectedVideo.videoId} 
+                playlistId={playlist.playlistId} 
+                autoplay={true} 
+                className="rounded-lg shadow-lg"
+              />
+              <button 
+                onClick={handleClosePlayer}
+                className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

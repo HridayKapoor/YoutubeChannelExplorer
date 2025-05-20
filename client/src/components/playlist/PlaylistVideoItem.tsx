@@ -9,7 +9,8 @@ interface PlaylistVideoItemProps {
 }
 
 export default function PlaylistVideoItem({ video, onClick }: PlaylistVideoItemProps) {
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (onClick) {
       onClick(video);
     } else {
