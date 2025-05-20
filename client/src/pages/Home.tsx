@@ -1,22 +1,35 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchChannels } from "@/lib/api";
 import Header from "@/components/layout/Header";
 import ChannelGrid from "@/components/channel/ChannelGrid";
-import SearchInput from "@/components/ui/SearchInput";
 import { Button } from "@/components/ui/button";
-import { YoutubeIcon, PlusIcon } from "lucide-react";
+import { YoutubeIcon, PlusIcon, FolderPlus } from "lucide-react";
 import AddChannelDialog from "@/components/channel/AddChannelDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFolders } from "@/contexts/FolderContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
   const [addChannelOpen, setAddChannelOpen] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const { folders, addFolder } = useFolders();
   
   const { data: channels, isLoading, error } = useQuery({
     queryKey: ["/api/channels"],
     queryFn: fetchChannels
   });
+
+  const handleCreateFolder = () => {
+    if (newFolderName.trim()) {
+      addFolder(newFolderName.trim());
+      setNewFolderName("");
+    }
+  };
   
   const renderContent = () => {
     if (isLoading) {
@@ -67,20 +80,60 @@ export default function Home() {
         </div>
       );
     }
+
+    const displayChannels = selectedFolder 
+      ? channels.filter(channel => 
+          folders.find(f => f.id === selectedFolder)?.channelIds.includes(channel.channelId)
+        )
+      : channels;
     
     return (
       <>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold">Your Channels</h2>
-          <SearchInput 
-            placeholder="Search channels..." 
-            value={searchQuery} 
-            onChange={setSearchQuery}
-            className="w-full max-w-sm"
-          />
+          <div className="flex items-center gap-4">
+            <h2 className="text-2xl md:text-3xl font-bold">Your Channels</h2>
+            <Select value={selectedFolder || ""} onValueChange={value => setSelectedFolder(value || null)}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="All Channels" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Channels</SelectItem>
+                {folders.map(folder => (
+                  <SelectItem key={folder.id} value={folder.id}>
+                    {folder.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  New Folder
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Folder</DialogTitle>
+                </DialogHeader>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Folder name"
+                    value={newFolderName}
+                    onChange={e => setNewFolderName(e.target.value)}
+                  />
+                  <Button onClick={handleCreateFolder}>Create</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         
-        <ChannelGrid channels={channels} searchQuery={searchQuery} />
+        <ChannelGrid 
+          channels={displayChannels} 
+          selectedFolder={selectedFolder}
+        />
       </>
     );
   };

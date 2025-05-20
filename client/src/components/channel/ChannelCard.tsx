@@ -12,7 +12,13 @@ interface ChannelCardProps {
   channel: Channel;
 }
 
-export default function ChannelCard({ channel }: ChannelCardProps) {
+interface ChannelCardProps {
+  channel: Channel;
+  selectedFolder: string | null;
+}
+
+export default function ChannelCard({ channel, selectedFolder }: ChannelCardProps) {
+  const { folders, addChannelToFolder, removeChannelFromFolder } = useFolders();
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
