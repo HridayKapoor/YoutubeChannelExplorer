@@ -12,6 +12,9 @@ export default function PlaylistVideoItem({ video, onClick }: PlaylistVideoItemP
   const handleClick = () => {
     if (onClick) {
       onClick(video);
+    } else {
+      // Open the video in a new tab if no click handler provided
+      window.open(`https://www.youtube.com/watch?v=${video.videoId}`, "_blank");
     }
   };
   
@@ -46,7 +49,7 @@ export default function PlaylistVideoItem({ video, onClick }: PlaylistVideoItemP
         <div>
           <h4 className="font-medium text-lg mb-1">{video.title}</h4>
           <p className="text-sm text-muted-foreground mb-2">
-            {formatViewCount(video.viewCount)} • {formatTimeAgo(video.publishedAt)}
+            {formatViewCount(video.viewCount || undefined)} • {formatTimeAgo(video.publishedAt || undefined)}
           </p>
           <p className="text-sm text-foreground/80 line-clamp-2">{video.description}</p>
         </div>
